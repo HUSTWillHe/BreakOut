@@ -10,10 +10,15 @@
 #include <iostream>
 #include <glad.h>
 #include <glfw3.h>
+#include <stb/stb_image.h>
+#include <fstream>
+#include <sstream>
 
+#include "shader.h"
 #include "game.h"
 #include "resource_manager.h"
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 // GLFW function declerations
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -31,7 +36,6 @@ int main(int argc, char *argv[])
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
 	#ifdef __APPLE__
 		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -40,11 +44,12 @@ int main(int argc, char *argv[])
     GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Breakout", nullptr, nullptr);
 	if (window == NULL)
 	{
-	std::cout << "Failed to create GLFW window" << std::endl;
-	glfwTerminate();
-	return -1;
+		std::cout << "Failed to create GLFW window" << std::endl;
+		glfwTerminate();
+		return -1;
 	}
     glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	// glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -54,16 +59,8 @@ int main(int argc, char *argv[])
         return -1;
 	}
 
-    glGetError(); // Call it once to catch glewInit() bug, all other errors are now from our application.
 
     glfwSetKeyCallback(window, key_callback);
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    // OpenGL configuration
-    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Initialize game
     Breakout.Init();
@@ -81,9 +78,7 @@ int main(int argc, char *argv[])
         GLfloat currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
-        glfwPollEvents();
 
-        //deltaTime = 0.001f;
         // Manage user input
         Breakout.ProcessInput(deltaTime);
 
@@ -91,11 +86,12 @@ int main(int argc, char *argv[])
         Breakout.Update(deltaTime);
 
         // Render
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         Breakout.Render();
 
         glfwSwapBuffers(window);
+        glfwPollEvents();
     }
 
     // Delete all resources as loaded using the resource manager
@@ -117,4 +113,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         else if (action == GLFW_RELEASE)
             Breakout.Keys[key] = GL_FALSE;
     }
+}
+
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+// ---------------------------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    // make sure the viewport matches the new window dimensions; note that width and 
+    // height will be significantly larger than specified on retina displays.
+    glViewport(0, 0, width, height);
 }
