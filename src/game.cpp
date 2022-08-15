@@ -27,6 +27,8 @@ const GLfloat BALL_RADIUS = 12.5f;
 BallObject *Ball;
 GameObject *Player;
 ParticleGenerator *Particles; 
+PostProcessor *Effects;
+GLfloat ShakeTime = 0.0f;
 
 Direction VectorDirection(glm::vec2 target)
 {
@@ -85,12 +87,14 @@ Game::~Game()
     delete Player;
     delete Ball;
     delete Particles;
+	delete Effects;
 }
 
 void Game::Init()
 {
 	ResourceManager::LoadShader("shaders/particle.vs", "shaders/particle.fs", nullptr, "particle");
     ResourceManager::LoadShader("shaders/sprite.vs", "shaders/sprite.fs", nullptr, "sprite");
+	ResourceManager::LoadShader("shaders/post_processing.vs", "shaders/post_processing.fs", nullptr, "postprocessing");
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(this->Width), static_cast<GLfloat>(this->Height), 0.0f, -1.0f, 1.0f);
 	ResourceManager::GetShader("sprite").Use().SetInteger("image", 0);
 	ResourceManager::GetShader("sprite").Use().SetMatrix4("projection", projection);
@@ -128,6 +132,7 @@ void Game::Init()
 	Player = new GameObject(playerPos, PLAYER_SIZE, ResourceManager::GetTexture("paddle"));
 	glm::vec2 ballPos = playerPos + glm::vec2(PLAYER_SIZE.x / 2 - BALL_RADIUS, -BALL_RADIUS * 2);
 	Ball = new BallObject(ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY, ResourceManager::GetTexture("face"));
+	Effects = new PostProcessor(ResourceManager::GetShader("postprocessing"), this->Width, this->Height);
 }
 
 void Game::Update(GLfloat dt)
@@ -140,6 +145,13 @@ void Game::Update(GLfloat dt)
         this->ResetPlayer();
     }
 	Particles->Update(dt, *Ball, 2, glm::vec2(Ball->Radius / 2));
+	if (ShakeTime > 0.0f) {
+		ShakeTime -= dt;
+		if (ShakeTime <= 0.0f)
+			Effects->Shake = false;
+			// Effects->Confuse = false;
+			// Effects->Chaos = false;
+	}
 }
 
 
@@ -175,11 +187,14 @@ void Game::ProcessInput(GLfloat dt)
 void Game::Render()
 {
 	if (this->State == GAME_ACTIVE) {
+		Effects->BeginRender();
 		Renderer->DrawSprite(ResourceManager::GetTexture("background"), glm::vec2(0, 0), glm::vec2(this->Width, this->Height), 0.0f);
 		this->Levels[this->Level].Draw(*Renderer);
 		Particles->Draw();
 		Player->Draw(*Renderer);
 		Ball->Draw(*Renderer);
+		Effects->EndRender();
+		Effects->Render(glfwGetTime());
 	}
 }
 
@@ -195,6 +210,12 @@ void Game::DoCollisions()
                 // 如果砖块不是实心就销毁砖块
                 if (!box.IsSolid)
                     box.Destroyed = GL_TRUE;
+				else {
+					ShakeTime = 0.05f;
+					Effects->Shake = true;
+					// Effects->Confuse = true;
+					// Effects->Chaos = true;
+				}
                 // 碰撞处理
                 Direction dir = std::get<1>(collision);
                 glm::vec2 diff_vector = std::get<2>(collision);

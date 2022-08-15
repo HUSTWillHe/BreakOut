@@ -47,7 +47,7 @@ void ParticleGenerator::Draw()
     {
         if (particle.Life > 0.0f)
         {
-            this->shader.SetVector2f("offset", particle.Position);  // todo: projection没有设置
+            this->shader.SetVector2f("offset", particle.Position);
             this->shader.SetVector4f("color", particle.Color);
             this->texture.Bind();
             glBindVertexArray(this->VAO);
