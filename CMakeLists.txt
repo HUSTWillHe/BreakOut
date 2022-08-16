@@ -12,9 +12,11 @@ include_directories("${CMAKE_SOURCE_DIR}/utility"
 					"${CMAKE_SOURCE_DIR}/libs/GLFW/include" 
 					"${CMAKE_SOURCE_DIR}/src"
 					"${CMAKE_SOURCE_DIR}/libs/glad/include"
-					"${CMAKE_SOURCE_DIR}/libs/stb")
+					"${CMAKE_SOURCE_DIR}/libs/stb"
+					"/usr/local/Cellar/freetype/2.12.1/include/freetype2/")
 
-link_directories("${CMAKE_SOURCE_DIR}/libs/GLFW/lib")
+link_directories("${CMAKE_SOURCE_DIR}/libs/GLFW/lib"
+				 "/usr/local/Cellar/freetype/2.12.1/lib/")
 
 aux_source_directory("${CMAKE_SOURCE_DIR}/utility" UTILITY)
 aux_source_directory("${CMAKE_SOURCE_DIR}/libs/stb" STB)
@@ -25,4 +27,4 @@ add_library(libglad ${GLAD})
 
 add_executable(${PROJECT_NAME} ${SRC} ${UTILITY} ${STB})
 
-target_link_libraries(${PROJECT_NAME} libglad libglfw.3.dylib)
+target_link_libraries(${PROJECT_NAME} libglad libglfw.3.dylib libfreetype.6.dylib)

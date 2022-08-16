@@ -18,6 +18,7 @@
 #include "particle_generator.h"
 #include "post_processor.h"
 #include "power_up.h"
+#include "text_renderer.h"
 
 // Represents the current state of the game
 enum GameState {
@@ -39,6 +40,8 @@ public:
 	std::vector<GameLevel> Levels;
 	GLuint                 Level;
 	std::vector<PowerUp>   PowerUps;
+	GLuint                 Lives;
+	GLboolean              KeysProcessed[1024];
     // Constructor/Destructor
     Game(GLuint width, GLuint height);
     ~Game();
